@@ -12,9 +12,6 @@ project_root = os.path.dirname(script_dir)
 data_dir = os.path.join(project_root, 'data')
 os.makedirs(data_dir, exist_ok=True)
 
-# When defining the filename, use:
-filename = os.path.join(data_dir, "auction_data.csv")
-
 def get_locations(zip_code, miles):
     url = f"https://auction.bidfta.io/api/location/getLocationsByZipMiles?zipCode={zip_code}&miles={miles}"
     response = requests.get(url)
@@ -124,6 +121,10 @@ def write_to_csv(items, filename, fieldnames=None):
     return fieldnames
 
 def main():
+
+    # When defining the filename, use:
+    filename = os.path.join(data_dir, "auction_data.csv")
+
     zip_code = input("Enter your zip code (required): ")
     while not zip_code:
         zip_code = input("Zip code is required. Please enter your zip code: ")
@@ -154,8 +155,6 @@ def main():
     
     selected_conditions = input("\nEnter the condition numbers you want to query (comma-separated, or press Enter for all): ")
     condition_ids = [cond.strip() for cond in selected_conditions.split(',')] if selected_conditions else []
-    
-    filename = f"auction_data.csv"
     
     first_page = fetch_data(1, ','.join(location_ids), ','.join(condition_ids), keywords)
     total_pages = first_page["pageCount"]
