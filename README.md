@@ -1,5 +1,5 @@
 # Auction Viewer and Scraper
-This repo is aPython scraper for collecting auction deals from bidfta.com and provides a web-based auction viewer to easily search deals.
+This repo is a Python scraper for collecting auction deals from bidfta.com and provides a web-based auction viewer to easily search deals.
 
 ## Structure
 
