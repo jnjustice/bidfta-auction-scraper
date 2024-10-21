@@ -52,6 +52,21 @@ A Python-based tool for scraping auction data from bidfta.com and a web-based vi
 - `scripts/`: Utility scripts
 - `data/`: Scraped auction data (CSV)
 
+### Open an Issue When:
+
+- You've found a bug in the existing code
+- You have a feature request or idea for improvement
+- You're experiencing unexpected behavior
+- You have questions about how to use the project
+- You want to discuss a change before investing time in a pull request
+
+To open an issue:
+1. Go to the [Issues tab](https://github.com/jnjustice/bidfta-auction-scraper/issues) in this repository
+2. Click on "New Issue"
+3. Choose the appropriate issue template if available, or start with a blank issue
+4. Provide as much detail as possible, including steps to reproduce for bugs
+
+
 ## Contributing
 
 We welcome contributions! Please follow these steps:
@@ -61,8 +76,6 @@ We welcome contributions! Please follow these steps:
 3. Make your changes and commit them: `git commit -m 'Add some feature'`
 4. Push to the branch: `git push origin feature-branch-name`
 5. Submit a pull request
-
-Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduct and the process for submitting pull requests.
 
 ## License
 
