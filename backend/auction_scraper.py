@@ -4,6 +4,16 @@ import time
 from datetime import datetime
 import json
 import re
+import os
+
+# Near the top of the file, add:
+script_dir = os.path.dirname(os.path.abspath(__file__))
+project_root = os.path.dirname(script_dir)
+data_dir = os.path.join(project_root, 'data')
+os.makedirs(data_dir, exist_ok=True)
+
+# When defining the filename, use:
+filename = os.path.join(data_dir, "auction_data.csv")
 
 def get_locations(zip_code, miles):
     url = f"https://auction.bidfta.io/api/location/getLocationsByZipMiles?zipCode={zip_code}&miles={miles}"
