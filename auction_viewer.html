@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auction Data Viewer</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f9f9f9;
+        }
+
+        .content_wrapper {
+            width: 90%;
+            margin: auto;
+            padding: 20px;
+        }
+
+        .item_counter {
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .search-form, .filters {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .table_wrapper {
+            width: 100%;
+        }
+
+        .auction_group {
+            margin-bottom: 20px;
+            border: 1px solid #ddd;
+        }
+
+        .auction_header {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px;
+            cursor: pointer;
+        }
+
+        .auction_items {
+            display: none;
+        }
+
+        .item_table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: auto;
+        }
+
+        .item_table th, .item_table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+        }
+
+        .item_table tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        .item_table tr:hover {
+            background-color: #ddd;
+        }
+
+        .item_table th {
+            padding-top: 12px;
+            padding-bottom: 12px;
+            text-align: left;
+            background-color: #4CAF50;
+            color: white;
+            position: sticky;
+            top: 0;
+            cursor: pointer;
+        }
+
+        .img_cell img {
+            max-width: 50%;
+            width: auto;
+            height: auto;
+        }
+
+        .img_wrapper {
+            width: 5%;
+            display: inline-block;
+        }
+
+        .description_content {
+            display: none;
+            white-space: pre-wrap;
+        }
+
+        select, input, button {
+            padding: 5px;
+        }
+
+        .footer_wrapper {
+            padding: 20px;
+            background-color: #f2f2f2;
+            color: #000;
+            text-align: center;
+        }
+
+        .footer_wrapper a {
+            color: #000;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="content_wrapper">
+        <div class="controls">
+            <div class="search-form">
+                <input type="text" id="searchInput" placeholder="Search..." onkeypress="runSearchOnEnter(event)">
+                <button onclick="applyFiltersAndSearch()">Search</button>
+                <button onclick="clearFilters()">Clear</button>
+            </div>
+            <div class="filters">
+                <select id="auctionIdFilter"><option value="">All Auction IDs</option></select>
+                <select id="lotCodeFilter"><option value="">All Lot Codes</option></select>
+                <select id="category1Filter"><option value="">All Category 1</option></select>
+                <select id="category2Filter"><option value="">All Category 2</option></select>
+                <select id="conditionFilter"><option value="">All Conditions</option></select>
+                <select id="bidCountFilter"><option value="">All Bid Counts</option></select>
+            </div>
+        </div>
+
+        <div id="auctionGroups"></div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment-timezone/0.5.33/moment-timezone-with-data.min.js"></script>
+    <script>
+        let allData = [];
+        let groupedData = {};
+
+        function loadCSV() {
+            Papa.parse('auction_data.csv', {
+                download: true,
+                header: true,
+                complete: function(results) {
+                    allData = results.data;
+                    filterEndedAuctions();
+                    groupAuctions();
+                    populateFilters();
+                    renderAuctionGroups();
+                }
+            });
+        }
+
+        function filterEndedAuctions() {
+            const now = moment();
+            allData = allData.filter(item => moment(item.utcEndDateTime) > now);
+        }
+
+        function groupAuctions() {
+            groupedData = allData.reduce((acc, item) => {
+                if (!acc[item.auctionId]) {
+                    acc[item.auctionId] = {
+                        auctionId: item.auctionId,
+                        auctionLocation: item.auctionLocation_nickName,
+                        pickupStart: item.pickupStart,
+                        pickupEnd: item.pickupEnd,
+                        items: []
+                    };
+                }
+                acc[item.auctionId].items.push(item);
+                return acc;
+            }, {});
+        }
+
+        function renderAuctionGroups() {
+            const container = document.getElementById('auctionGroups');
+            container.innerHTML = '';
+
+            Object.values(groupedData).forEach(auction => {
+                const auctionGroup = document.createElement('div');
+                auctionGroup.className = 'auction_group';
+                const pickupInfo = auction.pickupStart && auction.pickupEnd ? 
+                    ` - Pickup ${formatDate(auction.pickupStart)} - ${formatDate(auction.pickupEnd)}` : '';
+                auctionGroup.innerHTML = `
+                    <div class="auction_header" onclick="toggleAuction('${auction.auctionId}')">
+                        Auction ID: ${auction.auctionId} - Location: ${auction.auctionLocation} (${auction.items.length} items)${pickupInfo}
+                    </div>
+                    <div id="auction_${auction.auctionId}" class="auction_items">
+                        <table class="item_table">
+                            <thead>
+                                <tr>
+                                    <th onclick="sortAuction('${auction.auctionId}', 'id')">ID</th>
+                                    <th onclick="sortAuction('${auction.auctionId}', 'lotCode')">Lot Code</th>
+                                    <th onclick="sortAuction('${auction.auctionId}', 'category1')">Category 1</th>
+                                    <th onclick="sortAuction('${auction.auctionId}', 'category2')">Category 2</th>
+                                    <th onclick="sortAuction('${auction.auctionId}', 'utcEndDateTime')">End Date (EST)</th>
+                                    <th onclick="sortAuction('${auction.auctionId}', 'title')">Title</th>
+                                    <th onclick="sortAuction('${auction.auctionId}', 'currentBid')">Current Bid</th>
+                                    <th onclick="sortAuction('${auction.auctionId}', 'nextBid')">Next Bid</th>
+                                    <th onclick="sortAuction('${auction.auctionId}', 'msrp')">MSRP</th>
+                                    <th onclick="sortAuction('${auction.auctionId}', 'bidsCount')">Bids Count</th>
+                                    <th onclick="sortAuction('${auction.auctionId}', 'condition')">Condition</th>
+                                    <th>Description</th>
+                                    <th>Picture</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${auction.items.map(item => `
+                                    <tr>
+                                        <td>${item.id}</td>
+                                        <td>${item.lotCode}</td>
+                                        <td>${item.category1}</td>
+                                        <td>${item.category2}</td>
+                                        <td>${convertUTCtoEST(item.utcEndDateTime)}</td>
+                                        <td><a href="https://www.bidfta.com/${item.auctionId}/item-detail/${item.id}" target="_blank">${item.title}</a></td>
+                                        <td>${formatDollarValue(item.currentBid)}</td>
+                                        <td>${formatDollarValue(item.nextBid)}</td>
+                                        <td>${formatDollarValue(item.msrp)}</td>
+                                        <td>${item.bidsCount || '0'}</td>
+                                        <td>${item.condition}</td>
+                                        <td><button onclick="toggleDescription(this)">Show Description</button><div class="description_content">${item.description || 'No description available'}</div></td>
+                                        <td>
+                                            <button onclick="toggleImage(this)">Show Image</button>
+                                            <div class="img_wrapper" style="display: none;">
+                                                <img src="${item.imageUrl}" alt="Item Picture" class="img_cell">
+                                            </div>
+                                        </td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+                container.appendChild(auctionGroup);
+            });
+        }
+
+        function toggleAuction(auctionId) {
+            const auctionItems = document.getElementById(`auction_${auctionId}`);
+            auctionItems.style.display = auctionItems.style.display === 'none' ? 'block' : 'none';
+        }
+
+        function populateFilters() {
+            const filters = {
+                'auctionId': 'auctionId',
+                'lotCode': 'lotCode',
+                'category1': 'category1',
+                'category2': 'category2',
+                'condition': 'condition'
+            };
+
+            for (const [filterId, dataKey] of Object.entries(filters)) {
+                const uniqueValues = [...new Set(allData.map(item => item[dataKey]))].filter(Boolean).sort();
+                const filterElement = document.getElementById(`${filterId}Filter`);
+                filterElement.innerHTML = '<option value="">All ' + filterId + 's</option>';
+                uniqueValues.forEach(value => {
+                    const option = document.createElement('option');
+                    option.value = value;
+                    option.textContent = value;
+                    filterElement.appendChild(option);
+                });
+            }
+
+            const bidCounts = allData.map(item => parseInt(item.bidsCount) || 0).sort((a, b) => b - a);
+            const uniqueBidCounts = [...new Set(bidCounts)];
+            const bidCountFilter = document.getElementById('bidCountFilter');
+            bidCountFilter.innerHTML = '<option value="">All Bid Counts</option>';
+            uniqueBidCounts.forEach(count => {
+                const option = document.createElement('option');
+                option.value = count;
+                option.textContent = `${count}+ bids`;
+                bidCountFilter.appendChild(option);
+            });
+        }
+
+        function applyFiltersAndSearch() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const filters = {
+                'auctionId': document.getElementById('auctionIdFilter').value,
+                'lotCode': document.getElementById('lotCodeFilter').value,
+                'category1': document.getElementById('category1Filter').value,
+                'category2': document.getElementById('category2Filter').value,
+                'condition': document.getElementById('conditionFilter').value,
+                'bidsCount': document.getElementById('bidCountFilter').value
+            };
+
+            const filteredData = allData.filter(item => 
+                (searchTerm === '' || Object.values(item).some(value => 
+                    value && value.toString().toLowerCase().includes(searchTerm)
+                )) &&
+                Object.entries(filters).every(([key, value]) => {
+                    if (key === 'bidsCount') {
+                        return value === '' || (parseInt(item[key]) || 0) >= parseInt(value);
+                    }
+                    return value === '' || item[key] === value;
+                })
+            );
+
+            groupedData = filteredData.reduce((acc, item) => {
+                if (!acc[item.auctionId]) {
+                    acc[item.auctionId] = {
+                        auctionId: item.auctionId,
+                        auctionLocation: item.auctionLocation_nickName,
+                        pickupStart: item.pickupStart,
+                        pickupEnd: item.pickupEnd,
+                        items: []
+                    };
+                }
+                acc[item.auctionId].items.push(item);
+                return acc;
+            }, {});
+
+            renderAuctionGroups();
+
+            if (searchTerm !== '' || Object.values(filters).some(value => value !== '')) {
+                Object.keys(groupedData).forEach(auctionId => {
+                    const auctionItems = document.getElementById(`auction_${auctionId}`);
+                    if (auctionItems) {
+                        auctionItems.style.display = 'block';
+                    }
+                });
+            }
+        }
+
+        function clearFilters() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('auctionIdFilter').value = '';
+            document.getElementById('lotCodeFilter').value = '';
+            document.getElementById('category1Filter').value = '';
+            document.getElementById('category2Filter').value = '';
+            document.getElementById('conditionFilter').value = '';
+            document.getElementById('bidCountFilter').value = '';
+            applyFiltersAndSearch();
+        }
+
+        let currentSortColumn = '';
+        let currentSortOrder = 'asc';
+
+        function sortAuction(auctionId, column) {
+            const auction = groupedData[auctionId];
+            
+            if (column === currentSortColumn) {
+                currentSortOrder = currentSortOrder === 'asc' ? 'desc' : 'asc';
+            } else {
+                currentSortColumn = column;
+                currentSortOrder = 'asc';
+            }
+
+            auction.items.sort((a, b) => {
+                let valueA = a[column];
+                let valueB = b[column];
+                
+                if (column === 'currentBid' || column === 'nextBid' || column === 'msrp') {
+                    valueA = parseFloat(valueA) || 0;
+                    valueB = parseFloat(valueB) || 0;
+                } else if (column === 'bidsCount') {
+                    valueA = parseInt(valueA) || 0;
+                    valueB = parseInt(valueB) || 0;
+                }
+                
+                if (valueA < valueB) return currentSortOrder === 'asc' ? -1 : 1;
+                if (valueA > valueB) return currentSortOrder === 'asc' ? 1 : -1;
+				return 0;
+            });
+
+            renderAuctionGroups();
+            document.getElementById(`auction_${auctionId}`).style.display = 'block';
+        }
+
+        function toggleImage(button) {
+            const imgWrapper = button.nextElementSibling;
+            if (imgWrapper.style.display === "none") {
+                imgWrapper.style.display = "inline-block";
+                button.textContent = "Hide Image";
+            } else {
+                imgWrapper.style.display = "none";
+                button.textContent = "Show Image";
+            }
+        }
+
+        function toggleDescription(button) {
+            const desc = button.nextElementSibling;
+            if (desc.style.display === "none") {
+                desc.style.display = "block";
+                button.textContent = "Hide Description";
+            } else {
+                desc.style.display = "none";
+                button.textContent = "Show Description";
+            }
+        }
+
+        function convertUTCtoEST(utcDateString) {
+            return moment.utc(utcDateString).tz("America/New_York").format("MM/DD/YYYY hh:mm A");
+        }
+
+        function formatDollarValue(value) {
+            if (!value) return 'N/A';
+            return '$' + parseFloat(value).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+        }
+
+        function formatDate(dateString) {
+            return moment(dateString).format('MM/DD/YYYY');
+        }
+
+        function runSearchOnEnter(event) {
+            if (event.key === "Enter") {
+                applyFiltersAndSearch();
+            }
+        }
+
+        window.onload = loadCSV;
+    </script>
+</body>
+</html>
