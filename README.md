@@ -47,7 +47,7 @@ A Python-based tool for scraping auction data from bidfta.com and a web-based vi
 ## Issues
 We use GitHub issues to track bugs, feature requests, and questions. Before creating a new issue, please check if a similar one already exists.
 
-### Open an Issue When:
+Open an Issue When:
 - You've found a bug in the existing code
 - You have a feature request or idea for improvement
 - You're experiencing unexpected behavior
