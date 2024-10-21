@@ -97,6 +97,69 @@ Items processed: 50 / 500
 ...
 Data collection complete. Results saved to auction_data.csv
 ```
+# Usage Instructions for Auction Viewer
+
+## Using launch_auction_viewer.bat
+
+The `launch_auction_viewer.bat` script is designed to easily start a local web server and open the auction viewer in your default web browser.
+
+### Prerequisites
+- Python 3.x installed on your system
+- Windows operating system (for .bat file execution)
+
+### Steps to Launch
+
+1. Ensure that `launch_auction_viewer.bat`, `auction_viewer.html`, and `style.css` are in the same directory.
+2. Double-click on `launch_auction_viewer.bat` or run it from the command prompt.
+3. The script will:
+   - Start a Python HTTP server on port 8000
+   - Open your default web browser to `http://localhost:8000/auction_viewer.html`
+4. The auction viewer should now be visible in your web browser.
+5. To stop the server, close the command prompt window that opened when you ran the script.
+
+### Troubleshooting
+- If the browser doesn't open automatically, manually navigate to `http://localhost:8000/auction_viewer.html`
+- If you see an error about Python not being recognized, ensure that Python is installed and added to your system's PATH.
+
+## Using auction_viewer.html
+
+The `auction_viewer.html` file is the frontend interface for viewing auction data. It's designed to work with data scraped by the `auction_scraper.py` script.
+
+### Features
+
+1. **Search**: Use the search bar at the top to filter auction items.
+2. **Filters**: Apply filters for Auction IDs, Lot Codes, Categories, Conditions, and Bid Counts.
+3. **Clear**: Reset all search criteria and filters.
+4. **Auction Groups**: View auction items grouped by various criteria.
+
+### How to Use
+
+1. Once the page is loaded in your browser:
+   - Use the search bar to find specific items.
+   - Apply filters to narrow down the displayed auctions.
+   - Click on auction groups to expand and view details.
+2. The page will display auction items based on your search criteria and filters.
+3. Scroll through the results to view different auction items.
+
+### Notes
+- The auction viewer requires JavaScript to be enabled in your browser.
+- For the best experience, use a modern web browser like Chrome, Firefox, or Edge.
+- The viewer is designed to work with data in a specific format. Ensure that your data source (e.g., the output from auction_scraper.py) is compatible.
+
+### Customization
+- If you need to modify the appearance of the viewer, edit the `style.css` file.
+- For functional changes, you may need to modify the JavaScript code within `auction_viewer.html`.
+
+## Integrating with auction_scraper.py
+
+To use the auction viewer with data from the scraper:
+
+1. Run `auction_scraper.py` to collect auction data.
+2. Ensure the resulting CSV file is in the same directory as `auction_viewer.html`.
+3. Update `auction_viewer.html` to load data from your CSV file (you may need to modify the JavaScript code for this).
+4. Launch the viewer using `launch_auction_viewer.bat`.
+
+By following these steps, you'll be able to view the scraped auction data in a user-friendly interface.
 
 ## Note
 
