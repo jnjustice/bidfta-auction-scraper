@@ -47,14 +47,13 @@ A Python-based tool for scraping auction data from bidfta.com and a web-based vi
 ## Issues
 We use GitHub issues to track bugs, feature requests, and questions. Before creating a new issue, please check if a similar one already exists.
 
-Open an Issue When:
+### Open an Issue When:
 - You've found a bug in the existing code
 - You have a feature request or idea for improvement
 - You're experiencing unexpected behavior
 - You have questions about how to use the project
-- You want to discuss a change before investing time in a pull request
 
-To open an issue:
+### To open an issue:
 1. Go to the [Issues tab](https://github.com/jnjustice/bidfta-auction-scraper/issues) in this repository
 2. Click on "New Issue"
 3. Choose the appropriate issue template if available, or start with a blank issue
